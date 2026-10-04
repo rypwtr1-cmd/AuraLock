@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "AuraLock : Private Journal",
+  "short_name": "AuraLock",
+  "description": "Zero-knowledge, offline, client-side encrypted private journal and workspace secured with AES-256.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "/auralock-app",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait",
+  "background_color": "#060609",
+  "theme_color": "#060609",
+  "lang": "he",
+  "dir": "rtl",
+  "categories": [
+    "productivity",
+    "utilities",
+    "lifestyle"
+  ],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Journal",
+      "short_name": "New",
+      "description": "Create a new encrypted journal",
+      "url": "./index.html?action=new",
+      "icons": [
+        {
+          "src": "icon-512.png",
+          "sizes": "192x192 512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Encrypted Backup",
+      "short_name": "Backup",
+      "description": "Export or restore your encrypted vault",
+      "url": "./index.html?action=backup",
+      "icons": [
+        {
+          "src": "icon-512.png",
+          "sizes": "192x192 512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

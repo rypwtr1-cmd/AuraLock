@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" id="htmlRoot">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AuraLock : Private Journal</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" id="metaThemeColor" content="#060609">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-512.png">
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Assistant', 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    :root {
+      --bg: #060609;
+      --card: rgba(18, 18, 26, 0.95);
+      --border: rgba(99, 102, 241, 0.25);
+      --text: #f3f4f6;
+      --sub: #9ca3af;
+      --acc: #6366f1;
+      --acc-h: #4f46e5;
+      --doc: #ffffff;
+      --doc-t: #111827;
+    }
+
+    [data-theme="light"] {
+      --bg: #f1f3f9;
+      --card: rgba(255, 255, 255, 0.98);
+      --border: rgba(99, 102, 241, 0.2);
+      --text: #1e293b;
+      --sub: #64748b;
+      --acc: #4f46e5;
+      --acc-h: #4338ca;
+      --doc: #ffffff;
+      --doc-t: #1e293b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      line-height: 1.5;
+    }
+
+    .top-controls {
+      width: 100%;
+      max-width: 850px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin: auto 0;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px 20px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      word-break: break-word;
+    }
+
+    .sub {
+      color: var(--sub);
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .input-group {
+      position: relative;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text);
+      padding: 14px 16px;
+      font-size: 14px;
+      outline: 0;
+      transition: 0.2s;
+    }
+
+    input[type="password"] {
+      padding-left: 60px;
+      padding-right: 16px;
+    }
+
+    [dir="ltr"] input[type="password"] {
+      padding-right: 60px;
+      padding-left: 16px;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--acc);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    .eye-btn {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: 0;
+      color: var(--sub);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 10px;
+      z-index: 5;
+    }
+
+    [dir="ltr"] .eye-btn {
+      left: auto;
+      right: 10px;
+    }
+
+    button {
+      background: var(--acc);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+      touch-action: manipulation;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: var(--acc-h);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    button.secondary:hover {
+      background: var(--acc);
+      color: #fff;
+    }
+
+    button.full {
+      width: 100%;
+    }
+
+    .premium-badge {
+      cursor: pointer;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
+      transition: 0.2s;
+    }
+
+    .premium-badge:hover {
+      transform: scale(1.04);
+    }
+
+    .error {
+      color: #f87171;
+      font-size: 13px;
+      margin-top: 12px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .journal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 2px;
+    }
+
+    .journal-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .journal-item:hover {
+      border-color: var(--acc);
+      transform: translateY(-1px);
+    }
+
+    .journal-item span {
+      font-weight: 600;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-left: 10px;
+    }
+
+    [dir="ltr"] .journal-item span {
+      padding-left: 0;
+      padding-right: 10px;
+    }
+
+    .back-link {
+      color: var(--sub);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .back-link:hover {
+      color: var(--text);
+    }
+
+    .app {
+      width: 100%;
+      max-width: 850px;
+      margin-top: 4px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .topbar h2 {
+      font-size: 16px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 240px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .topbar-actions button {
+      padding: 7px 12px;
+      font-size: 12px;
+      border-radius: 10px;
+    }
+
+    .tabs-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 4px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      width: 100%;
+    }
+
+    .file-tab {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--sub);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+
+    .file-tab.active {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--acc);
+      font-weight: 700;
+    }
+
+    .del-tab-btn {
+      opacity: 0.4;
+      font-size: 11px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: 0.2s;
+    }
+
+    .del-tab-btn:hover {
+      opacity: 1;
+      color: #f87171;
+    }
+
+    .editor-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    }
+
+    .ribbon {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px;
+    }
+
+    .ribbon button {
+      background: transparent;
+      color: var(--text);
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .ribbon button:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .page-desk {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 10px 6px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    .doc-area {
+      width: 100%;
+      min-height: 55vh;
+      margin: 0 auto;
+      background: var(--doc);
+      color: var(--doc-t);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      padding: 24px 20px;
+      outline: 0;
+      font-size: 15px;
+      line-height: 1.8;
+      border-radius: 10px;
+      word-break: break-word;
+    }
+
+    .doc-area table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+    }
+
+    .doc-area th, .doc-area td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      text-align: right;
+    }
+
+    [dir="ltr"] .doc-area th, [dir="ltr"] .doc-area td {
+      text-align: left;
+    }
+
+    .doc-area th {
+      background: #f1f5f9;
+      font-weight: 700;
+    }
+
+    .doc-area img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin: 12px 0;
+      display: block;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      padding: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1b4b;
+      border: 1px solid var(--acc);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 10000;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+    }
+
+    .strength-meter {
+      height: 4px;
+      border-radius: 4px;
+      background: var(--bg);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      width: 0%;
+      transition: 0.3s;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    /* Focus Mode */
+    body.focus-mode .topbar,
+    body.focus-mode .tabs-bar,
+    body.focus-mode .ribbon,
+    body.focus-mode .top-controls {
+      display: none !important;
+    }
+
+    body.focus-mode {
+      background: #000 !important;
+      padding: 0 !important;
+    }
+
+    body.focus-mode .editor-panel {
+      background: #000 !important;
+      border: 0 !important;
+      padding: 0 !important;
+    }
+
+    body.focus-mode .page-desk {
+      background: #000 !important;
+      border: 0 !important;
+      padding: 0 !important;
+    }
+
+    body.focus-mode .doc-area {
+      background: #08080a !important;
+      color: #fff !important;
+      min-height: 100vh;
+      border-radius: 0;
+      max-width: 850px;
+      padding: 40px 24px;
+    }
+
+    #exitFocusBtn {
+      display: none;
+      position: fixed;
+      top: calc(15px + env(safe-area-inset-top, 0px));
+      left: calc(15px + env(safe-area-inset-left, 0px));
+      z-index: 9999;
+      background: #ef4444;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      border: 0;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    [dir="ltr"] #exitFocusBtn {
+      left: auto;
+      right: calc(15px + env(safe-area-inset-right, 0px));
+    }
+
+    body.focus-mode #exitFocusBtn {
+      display: block !important;
+    }
+
+    /* Keynote Slides */
+    .pres-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #11111f 0%, #050508 100%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      color: #fff;
+      user-select: none;
+      touch-action: pan-y;
+    }
+
+    .pres-header {
+      width: 100%;
+      max-width: 920px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 6px;
+      margin-bottom: 8px;
+    }
+
+    .pres-progress-track {
+      width: 100%;
+      max-width: 920px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .pres-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .pres-card {
+      background: linear-gradient(145deg, rgba(22, 22, 38, 0.95), rgba(10, 10, 18, 0.98));
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 24px;
+      padding: 36px 24px;
+      width: 100%;
+      max-width: 920px;
+      min-height: 350px;
+      max-height: 75vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85), 0 0 50px rgba(99, 102, 241, 0.2);
+      overflow-y: auto;
+    }
+
+    .pres-content {
+      width: 100%;
+      margin: auto 0;
+      animation: slideFadeIn 0.35s ease forwards;
+    }
+
+    @keyframes slideFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .pres-content h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .pres-content h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #a5b4fc;
+      line-height: 1.4;
+    }
+
+    .pres-content p {
+      font-size: 18px;
+      line-height: 1.8;
+      color: #f3f4f6;
+      margin-bottom: 12px;
+    }
+
+    .pres-content ul, .pres-content ol {
+      text-align: right;
+      display: inline-block;
+      margin: 12px auto;
+      font-size: 17px;
+      line-height: 1.8;
+      color: #e2e8f0;
+      padding-right: 24px;
+    }
+
+    [dir="ltr"] .pres-content ul, [dir="ltr"] .pres-content ol {
+      text-align: left;
+      padding-right: 0;
+      padding-left: 24px;
+    }
+
+    .pres-content li {
+      margin-bottom: 8px;
+    }
+
+    .pres-content img {
+      max-height: 280px;
+      max-width: 90%;
+      border-radius: 14px;
+      margin: 16px auto;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      display: block;
+    }
+
+    .pres-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: 100%;
+      max-width: 920px;
+      padding: 12px 0;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px 8px;
+      }
+      .card {
+        padding: 22px 16px;
+        border-radius: 20px;
+      }
+      .doc-area {
+        padding: 16px 12px;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+      .topbar h2 {
+        max-width: 140px;
+        font-size: 15px;
+      }
+      .topbar-actions button {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+      .ribbon {
+        gap: 4px;
+        padding: 4px;
+      }
+      .ribbon button {
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+      .pres-card {
+        padding: 24px 16px;
+        min-height: 300px;
+      }
+      .pres-content h1 {
+        font-size: 24px;
+      }
+      .pres-content p {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<button id="exitFocusBtn">יציאה ממיקוד (Esc)</button>
+
+<div class="top-controls">
+  <select id="langSelect" style="width:auto;padding:6px 12px;font-size:12px;border-radius:12px;cursor:pointer">
+    <option value="he">עברית</option>
+    <option value="en">English</option>
+    <option value="es">Español</option>
+  </select>
+  <button id="themeToggleBtn" class="secondary" style="padding:6px 12px;font-size:12px">🌓 ערכת נושא</button>
+</div>
+
+<div id="gate" class="center">
+  <div class="card">
+    <div id="screenSelect">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px">
+        <h1 style="margin:0">AuraLock</h1>
+        <div id="upgradeBadge" class="premium-badge">שדרג ל-PRO ✨</div>
+      </div>
+      <div class="sub" id="lblEncLocally">יומן אישי פרטי מוצפן ב-AES-256</div>
+      
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="text" id="mainSearchInput" placeholder="🔍 חיפוש יומן..." style="margin:0;font-size:13px;padding:10px 14px">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button id="backupBtn" class="secondary" style="flex:1;padding:10px;font-size:12px">📤 ייצוא גיבוי</button>
+        <button id="restoreBackupBtn" class="secondary" style="flex:1;padding:10px;font-size:12px">📥 ייבוא גיבוי</button>
+      </div>
+
+      <div class="journal-list" id="journalList"></div>
+      <button id="showCreateBtn" class="full">+ יומן חדש</button>
+    </div>
+
+    <div id="screenCreate" class="hidden">
+      <h1 id="lblNewJournalTitle">יומן חדש</h1>
+      <div class="sub" id="lblProtectThoughts">הגן על המחשבות והרעיונות שלך</div>
+      <input type="text" id="newName" placeholder="שם היומן" style="margin-bottom:10px">
+      <div class="input-group">
+        <input type="password" id="newPw" placeholder="סיסמה (מינימום 4 תווים)">
+        <button type="button" class="eye-btn" id="toggleNewPwBtn">הצג</button>
+      </div>
+      <div class="strength-meter"><div id="strengthFill" class="strength-fill"></div></div>
+      <button id="createBtn" class="full" style="margin-top:6px">צור יומן</button>
+      <div class="back-link" id="backFromCreate">← חזרה לרשימה</div>
+    </div>
+
+    <div id="screenPassword" class="hidden">
+      <h1 id="enterJournalName">פתיחת יומן</h1>
+      <div class="sub" id="lblEnterPassword">הזן את סיסמת המאסטר של היומן</div>
+      <div class="input-group">
+        <input type="password" id="enterPw" placeholder="סיסמה">
+        <button type="button" class="eye-btn" id="toggleEnterPwBtn">הצג</button>
+      </div>
+      <button id="enterBtn" class="full" style="margin-top:10px">פתח יומן</button>
+      <div class="back-link" id="backFromPassword">← חזרה לרשימה</div>
+    </div>
+    <div class="error" id="err"></div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <div class="topbar">
+    <h2 id="appJournalTitle"></h2>
+    <div class="topbar-actions">
+      <span id="saveIndicator" style="font-size:12px;color:var(--sub);font-weight:700"></span>
+      <button id="readonlyToggle" class="secondary">מצב קריאה</button>
+      <button id="presentBtn" class="secondary" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff">מצגת 📽️</button>
+      <button id="focusBtn" class="secondary">מיקוד</button>
+      <button id="lockBtn" class="secondary">נעילה 🔒</button>
+    </div>
+  </div>
+  
+  <div class="tabs-bar" id="tabsBar"></div>
+  
+  <div class="editor-panel">
+    <div class="ribbon" id="ribbonBar">
+      <button data-cmd="bold" id="btnBold"><b>מודגש</b></button>
+      <button data-cmd="italic" id="btnItalic"><i>נטוי</i></button>
+      <button data-cmd="underline" id="btnUnderline"><u>קו תחתון</u></button>
+      <button data-cmd="insertUnorderedList" id="btnList">• רשימה</button>
+      <button id="timeBtn">🕒 שעה</button>
+      <button id="imgBtn">🖼️ תמונה</button>
+      <button id="tableBtn">📊 טבלה</button>
+    </div>
+    <div class="page-desk">
+      <div id="docArea" class="doc-area" contenteditable="true" dir="auto"></div>
+    </div>
+    <div class="stats-bar">
+      <span id="wordCount">מילים: 0 | תווים: 0</span>
+      <span id="readOnlyStatus" style="color:var(--acc)"></span>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="imageInput" accept="image/*" class="hidden">
+<input type="file" id="importInput" accept=".json,application/json" class="hidden">
+
+<script>
+const $ = id => document.getElementById(id);
+
+function bytesToBase64(bytes) {
+  let binary = '';
+  const len = bytes.byteLength;
+  const chunkSize = 0x8000;
+  for (let i = 0; i < len; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function sanitizeHTML(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const badTags = ['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'FORM', 'INPUT', 'LINK', 'META', 'STYLE', 'BASE'];
+  const allElements = template.content.querySelectorAll('*');
+  allElements.forEach(el => {
+    if (badTags.includes(el.tagName) || el.tagName.includes('-')) {
+      el.remove();
+      return;
+    }
+    Array.from(el.attributes).forEach(attr => {
+      const name = attr.name.toLowerCase();
+      const val = attr.value.toLowerCase().replace(/\s+/g, '');
+      if (name.startsWith('on') || val.includes('javascript:') || val.includes('data:text/html')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return template.innerHTML;
+}
+
+const T = {
+  he: {
+    theme: "🌓 ערכת נושא",
+    exitFocus: "יציאה ממיקוד (Esc)",
+    encLocally: "יומן אישי פרטי מוצפן ב-AES-256",
+    searchPlaceholder: "🔍 חיפוש יומן...",
+    exportBtn: "📤 ייצוא גיבוי",
+    importBtn: "📥 ייבוא גיבוי",
+    newJournalBtn: "+ יומן חדש",
+    newJournalTitle: "יומן חדש",
+    protectThoughts: "הגן על המחשבות והרעיונות שלך",
+    namePlaceholder: "שם היומן",
+    pwPlaceholder: "סיסמה (מינימום 4 תווים)",
+    createBtn: "צור יומן",
+    backBtn: "← חזרה לרשימה",
+    enterPassword: "הזן את סיסמת המאסטר של היומן",
+    openBtn: "פתח יומן",
+    readOnly: "מצב קריאה 👁️",
+    edit: "עריכה ✏️",
+    readOnlyStatus: "(מצב קריאה בלבד)",
+    words: "מילים",
+    chars: "תווים",
+    delPage: "האם למחוק עמוד זה?",
+    delJournal: "הכנס סיסמה למחיקת היומן:",
+    promptBackup: "בחר סיסמה להצפנת קובץ הגיבוי:",
+    promptRestore: "הזן סיסמה לשחזור הגיבוי:",
+    wrongPw: "סיסמה שגויה",
+    lockedWait: "נעול עקב ניסיונות מרובים. המתן ",
+    seconds: "שניות",
+    journalExists: "קיים כבר יומן בשם זה",
+    page: "עמוד",
+    newPage: "+ עמוד חדש",
+    slide: "שקופית",
+    of: "מתוך",
+    fullscreen: "⛶ מסך מלא",
+    close: "סגור ✕",
+    prev: "→ הקודם",
+    next: "הבא ←",
+    bold: "מודגש", italic: "נטוי", underline: "קו תחתון", list: "רשימה", time: "🕒 שעה", img: "🖼️ תמונה", table: "📊 טבלה",
+    focus: "מיקוד", lock: "נעילה 🔒", present: "מצגת 📽️",
+    saving: "שומר...", saved: "נשמר ✓", typing: "מקליד...",
+    upgradeBadge: "שדרג ל-PRO ✨",
+    paywallTitle: "AuraLock PRO",
+    paywallSub: "שדרוג חד-פעמי של <b>$3.99</b> לגישה ללא הגבלה",
+    paywallFeatures: "✓ יומנים ללא הגבלה<br>✓ עמודים וטאבים ללא הגבלה<br>✓ הוספת תמונות וצילומי מסך<br>✓ טבלאות נתונים מתקדמות<br>✓ מצב מצגת אינטראקטיבי ומצב מיקוד",
+    paywallBuy: "שדרג עכשיו דרך Google Play ($3.99)",
+    paywallRestore: "שחזור רכישה קיימת",
+    paywallCancel: "ביטול",
+    toastBackupSuccess: "גיבוי הורד בהצלחה",
+    toastRestoreSuccess: "הגיבוי שוחזר בהצלחה!",
+    toastRestoreFail: "שגיאה בשחזור הגיבוי (סיסמה או קובץ שגויים)",
+    toastDeleted: "היומן נמחק בהצלחה",
+    toastPageDeleted: "עמוד נמחק",
+    toastImgAdded: "תמונה נוספה",
+    toastShortPw: "סיסמה חייבת להכיל 4 תווים לפחות",
+    toastEnterName: "נא להזין שם ליומן",
+    toastNoDataExport: "אין יומנים לייצוא",
+    lockedToast: "היומן ננעל",
+    th1: "כותרת 1", th2: "כותרת 2", td1: "מידע 1", td2: "מידע 2",
+    showPw: "הצג", hidePw: "הסתר"
+  },
+  en: {
+    theme: "🌓 Theme",
+    exitFocus: "Exit Focus (Esc)",
+    encLocally: "Encrypted locally with AES-256",
+    searchPlaceholder: "🔍 Search journal...",
+    exportBtn: "📤 Export Backup",
+    importBtn: "📥 Import Backup",
+    newJournalBtn: "+ New Journal",
+    newJournalTitle: "New Journal",
+    protectThoughts: "Protect your thoughts & ideas",
+    namePlaceholder: "Journal Name",
+    pwPlaceholder: "Password (min 4 chars)",
+    createBtn: "Create Journal",
+    backBtn: "← Back to List",
+    enterPassword: "Enter Master Password",
+    openBtn: "Open Journal",
+    readOnly: "Read Only 👁️",
+    edit: "Edit ✏️",
+    readOnlyStatus: "(Read Only Mode)",
+    words: "Words",
+    chars: "Chars",
+    delPage: "Delete this page?",
+    delJournal: "Enter password to delete journal:",
+    promptBackup: "Create password to encrypt backup:",
+    promptRestore: "Enter backup decryption password:",
+    wrongPw: "Incorrect password",
+    lockedWait: "Too many attempts. Locked for ",
+    seconds: "seconds",
+    journalExists: "A journal with this name already exists",
+    page: "Page",
+    newPage: "+ New Page",
+    slide: "Slide",
+    of: "of",
+    fullscreen: "⛶ Fullscreen",
+    close: "Close ✕",
+    prev: "← Prev",
+    next: "Next →",
+    bold: "Bold", italic: "Italic", underline: "Underline", list: "List", time: "🕒 Time", img: "🖼️ Image", table: "📊 Table",
+    focus: "Focus", lock: "Lock 🔒", present: "Present 📽️",
+    saving: "Saving...", saved: "Saved ✓", typing: "Typing...",
+    upgradeBadge: "Get PRO ✨",
+    paywallTitle: "AuraLock PRO",
+    paywallSub: "One-time <b>$3.99</b> upgrade for unlimited access",
+    paywallFeatures: "✓ Unlimited Journals<br>✓ Unlimited Pages & Tabs<br>✓ Embed Images & Screenshots<br>✓ Advanced Data Tables<br>✓ Interactive Presentation & Focus Mode",
+    paywallBuy: "Upgrade via Google Play ($3.99)",
+    paywallRestore: "Restore Purchase",
+    paywallCancel: "Cancel",
+    toastBackupSuccess: "Encrypted backup exported",
+    toastRestoreSuccess: "Backup restored successfully!",
+    toastRestoreFail: "Restore failed (Wrong password or file)",
+    toastDeleted: "Journal deleted successfully",
+    toastPageDeleted: "Page deleted",
+    toastImgAdded: "Image added",
+    toastShortPw: "Password must be at least 4 chars",
+    toastEnterName: "Please enter journal name",
+    toastNoDataExport: "No journals to export",
+    lockedToast: "Journal locked",
+    th1: "Header 1", th2: "Header 2", td1: "Data 1", td2: "Data 2",
+    showPw: "Show", hidePw: "Hide"
+  },
+  es: {
+    theme: "🌓 Tema",
+    exitFocus: "Salir del enfoque (Esc)",
+    encLocally: "Encriptado localmente con AES-256",
+    searchPlaceholder: "🔍 Buscar diario...",
+    exportBtn: "📤 Exportar",
+    importBtn: "📥 Importar",
+    newJournalBtn: "+ Nuevo Diario",
+    newJournalTitle: "Nuevo Diario",
+    protectThoughts: "Protege tus pensamientos",
+    namePlaceholder: "Nombre del diario",
+    pwPlaceholder: "Contraseña (mín 4)",
+    createBtn: "Crear Diario",
+    backBtn: "← Volver",
+    enterPassword: "Ingresa la contraseña maestra",
+    openBtn: "Abrir Diario",
+    readOnly: "Solo lectura 👁️",
+    edit: "Editar ✏️",
+    readOnlyStatus: "(Modo solo lectura)",
+    words: "Palabras",
+    chars: "Caracteres",
+    delPage: "¿Eliminar esta página?",
+    delJournal: "Ingresa la contraseña para eliminar:",
+    promptBackup: "Crea una contraseña para cifrar el archivo:",
+    promptRestore: "Ingresa la contraseña de respaldo:",
+    wrongPw: "Contraseña incorrecta",
+    lockedWait: "Demasiados intentos. Bloqueado por ",
+    seconds: "segundos",
+    journalExists: "Ya existe un diario con este nombre",
+    page: "Página",
+    newPage: "+ Nueva Página",
+    slide: "Diapositiva",
+    of: "de",
+    fullscreen: "⛶ Pantalla completa",
+    close: "Cerrar ✕",
+    prev: "← Ant",
+    next: "Sig →",
+    bold: "Negrita", italic: "Cursiva", underline: "Subrayado", list: "Lista", time: "🕒 Hora", img: "🖼️ Imagen", table: "📊 Tabla",
+    focus: "Enfoque", lock: "Bloquear 🔒", present: "Presentar 📽️",
+    saving: "Guardando...", saved: "Guardado ✓", typing: "Escribiendo...",
+    upgradeBadge: "Obtener PRO ✨",
+    paywallTitle: "AuraLock PRO",
+    paywallSub: "Mejora única de <b>$3.99</b> para acceso ilimitado",
+    paywallFeatures: "✓ Diarios ilimitados<br>✓ Páginas y pestañas ilimitadas<br>✓ Insertar imágenes y capturas<br>✓ Tablas de datos avanzadas<br>✓ Presentación interactiva y modo enfoque",
+    paywallBuy: "Mejorar con Google Play ($3.99)",
+    paywallRestore: "Restaurar compra",
+    paywallCancel: "Cancelar",
+    toastBackupSuccess: "Copia cifrada exportada",
+    toastRestoreSuccess: "¡Copia restaurada con éxito!",
+    toastRestoreFail: "Error al restaurar (contraseña incorrecta)",
+    toastDeleted: "Diario eliminado",
+    toastPageDeleted: "Página eliminada",
+    toastImgAdded: "Imagen agregada",
+    toastShortPw: "La contraseña debe tener al menos 4 caracteres",
+    toastEnterName: "Introduce un nombre",
+    toastNoDataExport: "No hay datos para exportar",
+    lockedToast: "Diario bloqueado",
+    th1: "Encabezado 1", th2: "Encabezado 2", td1: "Dato 1", td2: "Dato 2",
+    showPw: "Ver", hidePw: "Ocultar"
+  }
+};
+
+let lang = localStorage.getItem('aura_lang') || 'he';
+let key = null, slug = null, files = [], activeFile = null, timer = null, readOnly = false;
+let isSwitching = false;
+let hasDecryptionError = false;
+let premium = localStorage.getItem('prem') === 'true';
+let lastCursorRange = null;
+let activePresCleanup = null;
+const enc = new TextEncoder(), dec = new TextDecoder();
+
+const PRO_SKU = 'auralock_pro';
+
+async function getBillingService() {
+  if ('getDigitalGoodsService' in window) {
+    try {
+      return await window.getDigitalGoodsService('https://play.google.com/billing');
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function autoRestorePlayStorePurchase() {
+  if (premium) return;
+  try {
+    const service = await getBillingService();
+    if (!service) return;
+    const purchases = await service.listPurchases();
+    const proItem = purchases && purchases.find(p => p.itemId === PRO_SKU);
+    if (proItem) {
+      premium = true;
+      localStorage.setItem('prem', 'true');
+      updateUI();
+      renderTabs();
+    }
+  } catch (e) {}
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('aura_lang', l);
+  const root = $('htmlRoot');
+  root.lang = l;
+  root.dir = (l === 'he') ? 'rtl' : 'ltr';
+  $('langSelect').value = l;
+
+  const d = T[l];
+  $('themeToggleBtn').textContent = d.theme;
+  $('exitFocusBtn').textContent = d.exitFocus;
+  $('lblEncLocally').textContent = d.encLocally;
+  $('mainSearchInput').placeholder = d.searchPlaceholder;
+  $('backupBtn').textContent = d.exportBtn;
+  $('restoreBackupBtn').textContent = d.importBtn;
+  $('showCreateBtn').textContent = d.newJournalBtn;
+  $('lblNewJournalTitle').textContent = d.newJournalTitle;
+  $('lblProtectThoughts').textContent = d.protectThoughts;
+  $('newName').placeholder = d.namePlaceholder;
+  $('newPw').placeholder = d.pwPlaceholder;
+  $('createBtn').textContent = d.createBtn;
+  $('backFromCreate').textContent = d.backBtn;
+  $('lblEnterPassword').textContent = d.enterPassword;
+  $('enterPw').placeholder = d.pwPlaceholder;
+  $('enterBtn').textContent = d.openBtn;
+  $('backFromPassword').textContent = d.backBtn;
+  
+  $('toggleNewPwBtn').textContent = $('newPw').type === 'password' ? d.showPw : d.hidePw;
+  $('toggleEnterPwBtn').textContent = $('enterPw').type === 'password' ? d.showPw : d.hidePw;
+
+  $('btnBold').innerHTML = `<b>${d.bold}</b>`;
+  $('btnItalic').innerHTML = `<i>${d.italic}</i>`;
+  $('btnUnderline').innerHTML = `<u>${d.underline}</u>`;
+  $('btnList').textContent = `• ${d.list}`;
+  $('timeBtn').textContent = d.time;
+  $('imgBtn').textContent = d.img;
+  $('tableBtn').textContent = d.table;
+  $('focusBtn').textContent = d.focus;
+  $('lockBtn').textContent = d.lock;
+  $('presentBtn').textContent = d.present;
+  $('upgradeBadge').textContent = d.upgradeBadge;
+
+  updateReadOnlyUI();
+  updateStats();
+  renderTabs();
+  loadList($('mainSearchInput').value.trim().toLowerCase());
+}
+
+$('langSelect').onchange = e => setLang(e.target.value);
+
+function getLockout(sId) {
+  try {
+    const raw = localStorage.getItem('aura_lock_' + sId);
+    return raw ? JSON.parse(raw) : { fails: 0, lockTime: 0 };
+  } catch (e) {
+    return { fails: 0, lockTime: 0 };
+  }
+}
+
+function setLockout(sId, fails, lockTime) {
+  try {
+    localStorage.setItem('aura_lock_' + sId, JSON.stringify({ fails, lockTime }));
+  } catch (e) {}
+}
+
+let theme = localStorage.getItem('thm') || 'dark';
+function setTheme(th) {
+  theme = th;
+  $('htmlRoot').dataset.theme = th;
+  localStorage.setItem('thm', th);
+  $('metaThemeColor').setAttribute('content', th === 'dark' ? '#060609' : '#f1f3f9');
+}
+setTheme(theme);
+$('themeToggleBtn').onclick = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+
+document.addEventListener("DOMContentLoaded", () => {
+  setLang(lang);
+  updateUI();
+  autoRestorePlayStorePurchase();
+  setTimeout(autoRestorePlayStorePurchase, 1500);
+
+  $('mainSearchInput').oninput = e => loadList(e.target.value.trim().toLowerCase());
+  $('toggleNewPwBtn').onclick = function() { togglePw('newPw', this); };
+  $('toggleEnterPwBtn').onclick = function() { togglePw('enterPw', this); };
+  $('upgradeBadge').onclick = () => openPaywall();
+
+  document.querySelectorAll('.ribbon button').forEach(b => {
+    b.onmousedown = e => e.preventDefault();
+  });
+
+  const trackSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && $('docArea').contains(sel.anchorNode)) {
+      lastCursorRange = sel.getRangeAt(0).cloneRange();
+    }
+  };
+  $('docArea').addEventListener('keyup', trackSelection);
+  $('docArea').addEventListener('mouseup', trackSelection);
+  $('docArea').addEventListener('touchend', trackSelection);
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.body.classList.contains('focus-mode')) {
+      document.body.classList.remove('focus-mode');
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      clearTimeout(timer);
+      saveCurrent();
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    clearTimeout(timer);
+    saveCurrent();
+  });
+
+  window.addEventListener('popstate', () => {
+    const pres = document.querySelector('.pres-overlay');
+    if (pres) {
+      if (activePresCleanup) activePresCleanup();
+      pres.remove();
+      return;
+    }
+    const paywall = document.querySelector('.paywall-modal');
+    if (paywall) {
+      paywall.remove();
+      return;
+    }
+    if (!$('app').classList.contains('hidden')) {
+      $('lockBtn').click();
+    } else if (!$('screenCreate').classList.contains('hidden') || !$('screenPassword').classList.contains('hidden')) {
+      showScr('screenSelect');
+    }
+  });
+
+  $('enterPw').addEventListener('keydown', e => { if (e.key === 'Enter') $('enterBtn').click(); });
+  $('newPw').addEventListener('keydown', e => { if (e.key === 'Enter') $('createBtn').click(); });
+  $('newName').addEventListener('keydown', e => { if (e.key === 'Enter') $('newPw').focus(); });
+
+  $('docArea').addEventListener('paste', e => {
+    if (readOnly) return;
+    const items = e.clipboardData ? e.clipboardData.items : null;
+    if (items) {
+      for (let item of items) {
+        if (item.type.indexOf('image') === 0) {
+          if (!premium) {
+            e.preventDefault();
+            openPaywall();
+            return;
+          }
+          e.preventDefault();
+          processAndInsertImage(item.getAsFile());
+          return;
+        }
+      }
+    }
+    e.preventDefault();
+    const pastedHtml = e.clipboardData ? e.clipboardData.getData('text/html') : '';
+    const pastedText = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+    if (pastedHtml) {
+      document.execCommand('insertHTML', false, sanitizeHTML(pastedHtml));
+    } else if (pastedText) {
+      document.execCommand('insertText', false, pastedText);
+    }
+  });
+});
+
+function togglePw(id, btn) {
+  let i = $(id);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  btn.textContent = i.type === 'password' ? T[lang].showPw : T[lang].hidePw;
+}
+
+function toast(m) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  let t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = m;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2400);
+}
+
+function updateUI() {
+  let badge = $('upgradeBadge');
+  if (badge) badge.style.display = premium ? 'none' : 'inline-flex';
+}
+
+function openPaywall() {
+  if (document.querySelector('.paywall-modal')) return;
+  
+  history.pushState({ modal: 'paywall' }, '');
+  const d = T[lang];
+  let ov = document.createElement('div');
+  ov.className = 'modal-overlay paywall-modal';
+  ov.innerHTML = `
+    <div class="card" style="max-width:350px; text-align:center;">
+      <div style="font-size:36px; margin-bottom:10px">💎</div>
+      <h3 style="margin-bottom:6px; font-size:20px; font-weight:800">${d.paywallTitle}</h3>
+      <div class="sub" style="margin-bottom:16px">${d.paywallSub}</div>
+      
+      <div style="background:rgba(99,102,241,0.1); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:18px; text-align:right; font-size:13px; line-height:1.8">
+        ${d.paywallFeatures}
+      </div>
+
+      <button id="checkoutBtn" class="full" style="margin-bottom:8px; background:linear-gradient(135deg,#6366f1,#a855f7)">${d.paywallBuy}</button>
+      <button id="restoreBtn" class="secondary full" style="margin-bottom:10px">${d.paywallRestore}</button>
+      <div class="back-link" id="closePaywallBtn" style="margin:0">${d.paywallCancel}</div>
+    </div>`;
+  
+  document.body.appendChild(ov);
+
+  ov.onclick = e => { if (e.target === ov) history.back(); };
+  ov.querySelector('#closePaywallBtn').onclick = () => history.back();
+
+  ov.querySelector('#checkoutBtn').onclick = async function() {
+    const btn = this;
+    if (btn.disabled) return;
+    btn.disabled = true;
+
+    let paymentResponse = null;
+    try {
+      const service = await getBillingService();
+      if (!service) {
+        if (confirm("Google Play Billing unavailable. Activate PRO for testing?")) {
+          premium = true;
+          localStorage.setItem('prem', 'true');
+          updateUI();
+          renderTabs();
+          history.back();
+          toast('PRO activated 🎉');
+        }
+        btn.disabled = false;
+        return;
+      }
+
+      toast('Connecting to Google Play...');
+      const paymentMethodData = [{
+        supportedMethods: 'https://play.google.com/billing',
+        data: { sku: PRO_SKU }
+      }];
+
+      const paymentDetails = {
+        total: {
+          label: 'AuraLock PRO',
+          amount: { currency: 'USD', value: '3.99' }
+        }
+      };
+
+      const request = new PaymentRequest(paymentMethodData, paymentDetails);
+      paymentResponse = await request.show();
+      const { purchaseToken } = paymentResponse.details;
+
+      try {
+        await service.acknowledge(purchaseToken, 'onetime');
+      } catch (ackErr) {}
+      await paymentResponse.complete('success');
+
+      premium = true;
+      localStorage.setItem('prem', 'true');
+      updateUI();
+      renderTabs();
+      history.back();
+      toast('Welcome to PRO 🎉');
+    } catch (err) {
+      if (paymentResponse) {
+        try { await paymentResponse.complete('fail'); } catch (e) {}
+      }
+      toast('Payment canceled or failed.');
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  ov.querySelector('#restoreBtn').onclick = async () => {
+    try {
+      toast('Checking purchases...');
+      const service = await getBillingService();
+      if (!service) {
+        toast('Google Play Billing unavailable.');
+        return;
+      }
+
+      const purchases = await service.listPurchases();
+      const proItem = purchases && purchases.find(p => p.itemId === PRO_SKU);
+
+      if (proItem) {
+        premium = true;
+        localStorage.setItem('prem', 'true');
+        updateUI();
+        renderTabs();
+        history.back();
+        toast('PRO restored!');
+      } else {
+        toast('No active purchase found.');
+      }
+    } catch (err) {
+      toast('Failed to restore purchase.');
+    }
+  };
+}
+
+async function derive(pw, saltHex) {
+  const normPw = (pw || '').normalize('NFKC');
+  let salt = saltHex ? base64ToBytes(saltHex) : crypto.getRandomValues(new Uint8Array(16));
+  let km = await crypto.subtle.importKey('raw', enc.encode(normPw), 'PBKDF2', false, ['deriveKey']);
+  let k = await crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'}, km, {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']);
+  return { key: k, saltHex: bytesToBase64(salt) };
+}
+
+async function encText(k, txt) {
+  let iv = crypto.getRandomValues(new Uint8Array(12));
+  let ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, k, enc.encode(txt));
+  return { iv: bytesToBase64(iv), ct: bytesToBase64(new Uint8Array(ct)) };
+}
+
+async function decText(k, ivH, ctH) {
+  let iv = base64ToBytes(ivH), ct = base64ToBytes(ctH);
+  return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM', iv}, k, ct));
+}
+
+let cachedDB = null;
+const getDB = () => {
+  if (cachedDB) return Promise.resolve(cachedDB);
+  return new Promise((res, rej) => {
+    let req = indexedDB.open('AuraLock_DB', 1);
+    req.onupgradeneeded = e => {
+      let database = e.target.result;
+      if (!database.objectStoreNames.contains('journals')) database.createObjectStore('journals', {keyPath:'slug'});
+      if (!database.objectStoreNames.contains('files')) database.createObjectStore('files', {keyPath:'id'});
+    };
+    req.onsuccess = () => {
+      cachedDB = req.result;
+      cachedDB.onclose = () => { cachedDB = null; };
+      cachedDB.onversionchange = () => { if (cachedDB) { cachedDB.close(); cachedDB = null; } };
+      res(cachedDB);
+    };
+    req.onerror = () => rej(req.error);
+  });
+};
+
+async function db(store, mode, fn) {
+  let database = await getDB();
+  return new Promise((res, rej) => {
+    try {
+      let tx = database.transaction(store, mode);
+      let req = fn(tx.objectStore(store));
+      tx.oncomplete = () => res(req ? req.result : undefined);
+      tx.onerror = () => rej(tx.error || (req ? req.error : null));
+      tx.onabort = () => rej(tx.error || new Error('Transaction aborted'));
+    } catch (e) {
+      rej(e);
+    }
+  });
+}
+
+const showScr = id => ['screenSelect','screenCreate','screenPassword'].forEach(s => {
+  $(s).classList.toggle('hidden', s !== id);
+  $('err').textContent = '';
+});
+
+async function loadList(searchQuery = '') {
+  try {
+    let list = await db('journals', 'readonly', s => s.getAll()) || [];
+    let box = $('journalList');
+    box.innerHTML = '';
+    
+    if (searchQuery) list = list.filter(j => (j.name || '').toLowerCase().includes(searchQuery));
+
+    if (list.length === 0) {
+      box.innerHTML = `<div style="text-align:center;font-size:13px;color:var(--sub);padding:14px">${searchQuery ? 'לא נמצאו יומנים תואמים' : 'אין יומנים שמורים עדיין'}</div>`;
+      return;
+    }
+
+    list.forEach(j => {
+      let item = document.createElement('div');
+      item.className = 'journal-item';
+      
+      let titleSpan = document.createElement('span');
+      titleSpan.textContent = j.name;
+      
+      let delBtn = document.createElement('button');
+      delBtn.className = 'secondary';
+      delBtn.style.cssText = 'padding:5px 10px;font-size:12px;border:0;color:#f87171';
+      delBtn.textContent = lang === 'he' ? 'מחק' : lang === 'es' ? 'Borrar' : 'Del';
+      
+      item.appendChild(titleSpan);
+      item.appendChild(delBtn);
+
+      delBtn.onclick = async e => {
+        e.stopPropagation();
+        let lockData = getLockout('del_' + j.slug);
+        if (Date.now() < lockData.lockTime) {
+          let rem = Math.ceil((lockData.lockTime - Date.now()) / 1000);
+          toast(`${T[lang].lockedWait}${rem} ${T[lang].seconds}`);
+          return;
+        }
+
+        let pass = prompt(T[lang].delJournal);
+        if (!pass) return;
+        try {
+          let {key: k} = await derive(pass, j.salt);
+          let [iv, ct] = (j.verifier || '').split(':');
+          let decrypted = '';
+          try { decrypted = await decText(k, iv, ct); } catch (err) {}
+          if (decrypted !== 'ok') {
+            let fails = lockData.fails + 1;
+            let nextLock = fails >= 3 ? Date.now() + 10000 : 0;
+            setLockout('del_' + j.slug, fails, nextLock);
+            toast(T[lang].wrongPw);
+            return;
+          }
+          
+          setLockout('del_' + j.slug, 0, 0);
+          await db('journals', 'readwrite', s => s.delete(j.slug));
+          let allFiles = await db('files', 'readonly', s => s.getAll()) || [];
+          await db('files', 'readwrite', s => {
+            allFiles.forEach(f => { if (f.slug === j.slug) s.delete(f.id); });
+          });
+          
+          loadList($('mainSearchInput').value.trim().toLowerCase());
+          toast(T[lang].toastDeleted);
+        } catch (err) {
+          toast(T[lang].wrongPw);
+        }
+      };
+
+      item.onclick = () => {
+        slug = j.slug;
+        $('enterJournalName').textContent = j.name;
+        $('enterPw').value = '';
+        history.pushState({ screen: 'password' }, '');
+        showScr('screenPassword');
+      };
+      box.appendChild(item);
+    });
+  } catch (e) {}
+}
+
+$('showCreateBtn').onclick = () => db('journals', 'readonly', s => s.getAll()).then(list => {
+  if (!premium && list && list.length >= 1) {
+    openPaywall();
+  } else {
+    history.pushState({ screen: 'create' }, '');
+    showScr('screenCreate');
+    $('newName').value = '';
+    $('newPw').value = '';
+    $('strengthFill').style.width = '0%';
+  }
+});
+
+document.querySelectorAll('.back-link').forEach(el => el.onclick = () => history.back());
+
+$('newPw').oninput = e => {
+  let v = e.target.value;
+  const fill = $('strengthFill');
+  if (!v) { fill.style.width = '0%'; return; }
+  let score = 0;
+  if (v.length >= 4) score++;
+  if (v.length >= 8) score++;
+  if (v.length >= 12) score++;
+  if (/\d/.test(v) || /[^A-Za-z0-9א-ת]/.test(v)) score++;
+  fill.style.width = score <= 1 ? '30%' : score <= 2 ? '65%' : '100%';
+  fill.style.background = score <= 1 ? '#f87171' : score <= 2 ? '#fbbf24' : '#34d399';
+};
+
+$('createBtn').onclick = async () => {
+  let btn = $('createBtn');
+  if (btn.disabled) return;
+
+  let name = $('newName').value.trim(), pw = $('newPw').value, err = $('err');
+  err.textContent = '';
+  if (!name) { err.textContent = T[lang].toastEnterName; return; }
+  if (!pw || pw.length < 4) { err.textContent = T[lang].toastShortPw; return; }
+  
+  btn.disabled = true;
+  try {
+    let list = await db('journals', 'readonly', s => s.getAll()) || [];
+    if (!premium && list.length >= 1) {
+      openPaywall();
+      btn.disabled = false;
+      return;
+    }
+    if (list.some(j => (j.name || '').toLowerCase() === name.toLowerCase())) {
+      err.textContent = T[lang].journalExists;
+      btn.disabled = false;
+      return;
+    }
+    let sId = 'j_' + Math.random().toString(36).slice(2);
+    let {key: k, saltHex} = await derive(pw);
+    let ver = await encText(k, 'ok');
+    await db('journals', 'readwrite', s => s.put({slug: sId, name, salt: saltHex, verifier: ver.iv + ':' + ver.ct}));
+    let fId = 'f_' + Math.random().toString(36).slice(2);
+    let fData = await encText(k, '');
+    await db('files', 'readwrite', s => s.put({id: fId, slug: sId, name: `${T[lang].page} 1`, order: 0, ...fData}));
+    
+    key = k; slug = sId; files = [{id: fId, name: `${T[lang].page} 1`, order: 0}]; activeFile = fId;
+    history.pushState({ screen: 'app' }, '');
+    enterApp(name);
+  } catch (e) {
+    err.textContent = 'Error creating journal';
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+$('enterBtn').onclick = async () => {
+  let btn = $('enterBtn');
+  if (btn.disabled) return;
+
+  let err = $('err'), pw = $('enterPw').value;
+  if (!pw) { err.textContent = T[lang].enterPassword; return; }
+  
+  let lockData = getLockout(slug);
+  if (Date.now() < lockData.lockTime) {
+    let rem = Math.ceil((lockData.lockTime - Date.now()) / 1000);
+    err.textContent = `${T[lang].lockedWait}${rem} ${T[lang].seconds}`;
+    return;
+  }
+
+  btn.disabled = true;
+  try {
+    let j = await db('journals', 'readonly', s => s.get(slug));
+    if (!j) { err.textContent = 'Journal not found'; return; }
+
+    let {key: k} = await derive(pw, j.salt);
+    let [iv, ct] = (j.verifier || '').split(':');
+    if (await decText(k, iv, ct) !== 'ok') throw new Error('AUTH_FAIL');
+    
+    key = k;
+    setLockout(slug, 0, 0);
+    files = (await db('files', 'readonly', s => s.getAll()) || []).filter(f => f.slug === slug).sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (!files.length) {
+      let fId = 'f_' + Math.random().toString(36).slice(2);
+      let fData = await encText(k, '');
+      await db('files', 'readwrite', s => s.put({id: fId, slug, name: `${T[lang].page} 1`, order: 0, ...fData}));
+      files = [{id: fId, name: `${T[lang].page} 1`, order: 0}];
+    }
+    activeFile = files[0].id;
+    history.pushState({ screen: 'app' }, '');
+    enterApp(j.name);
+  } catch (e) {
+    let currentFails = lockData.fails + 1;
+    let nextLock = currentFails >= 3 ? Date.now() + 10000 : 0;
+    err.textContent = currentFails >= 3 ? `${T[lang].lockedWait}10 ${T[lang].seconds}` : T[lang].wrongPw;
+    setLockout(slug, currentFails, nextLock);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+function enterApp(title) {
+  $('gate').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('appJournalTitle').textContent = title || 'AuraLock';
+  document.title = (title ? `${title} - ` : '') + 'AuraLock';
+  readOnly = false;
+  hasDecryptionError = false;
+  updateReadOnlyUI();
+  switchToFile(activeFile);
+}
+
+// החלפת עמוד בטוחה עם שמירה מוקדמת של השינויים
+async function switchToFile(id) {
+  if (isSwitching) return;
+  isSwitching = true;
+  try {
+    clearTimeout(timer);
+    if (activeFile && activeFile !== id) await saveCurrent();
+    activeFile = id;
+    renderTabs();
+    try {
+      let rec = await db('files', 'readonly', s => s.get(id));
+      $('docArea').innerHTML = (rec && rec.ct) ? sanitizeHTML(await decText(key, rec.iv, rec.ct)) : '';
+      hasDecryptionError = false;
+    } catch (err) {
+      hasDecryptionError = true;
+      readOnly = true;
+      updateReadOnlyUI();
+      $('docArea').innerHTML = '<p style="color:#f87171;font-weight:700">שגיאת פענוח. העריכה ננעלה כדי למנוע אובדן מידע.</p>';
+    }
+    updateStats();
+  } finally {
+    isSwitching = false;
+  }
+}
+
+// שמירה עם נעילת מזהה העמוד
+async function saveCurrent() {
+  if (!key || !activeFile || readOnly || hasDecryptionError) return;
+  const targetFile = activeFile;
+  let ind = $('saveIndicator');
+  if (ind) ind.textContent = T[lang].saving;
+  
+  try {
+    let html = $('docArea').innerHTML;
+    let encRes = await encText(key, html);
+    await db('files', 'readwrite', s => {
+      let req = s.get(targetFile);
+      req.onsuccess = () => {
+        let rec = req.result;
+        if (rec) s.put({...rec, iv: encRes.iv, ct: encRes.ct});
+      };
+      return req;
+    });
+    if (ind && activeFile === targetFile) {
+      ind.textContent = T[lang].saved;
+      setTimeout(() => { if (ind && ind.textContent === T[lang].saved) ind.textContent = ''; }, 1200);
+    }
+  } catch (err) {
+    if (ind) ind.textContent = '';
+  }
+}
+
+function renderTabs() {
+  let bar = $('tabsBar');
+  bar.innerHTML = '';
+  let allowedFiles = premium ? files : files.slice(0, 3);
+
+  allowedFiles.forEach(f => {
+    if (!f) return;
+    let tab = document.createElement('div');
+    tab.className = 'file-tab' + (f.id === activeFile ? ' active' : '');
+    let titleSpan = document.createElement('span');
+    titleSpan.textContent = f.name;
+    tab.appendChild(titleSpan);
+
+    if (allowedFiles.length > 1) {
+      let delBtn = document.createElement('span');
+      delBtn.className = 'del-tab-btn';
+      delBtn.textContent = '✕';
+      delBtn.title = 'Delete';
+      delBtn.onclick = async e => {
+        e.stopPropagation();
+        if (!confirm(T[lang].delPage)) return;
+        clearTimeout(timer);
+        if (activeFile !== f.id) await saveCurrent();
+        await db('files', 'readwrite', s => s.delete(f.id));
+        files = files.filter(item => item.id !== f.id);
+        if (activeFile === f.id) activeFile = files[0].id;
+        switchToFile(activeFile);
+        toast(T[lang].toastPageDeleted);
+      };
+      tab.appendChild(delBtn);
+    }
+    tab.onclick = () => { if (activeFile !== f.id) switchToFile(f.id); };
+    bar.appendChild(tab);
+  });
+  
+  let add = document.createElement('div');
+  add.className = 'file-tab';
+  add.textContent = T[lang].newPage;
+  add.onclick = async () => {
+    if (!premium && files.length >= 3) {
+      openPaywall();
+      return;
+    }
+    await saveCurrent();
+    let maxNum = 0;
+    files.forEach(item => {
+      let match = (item.name || '').match(/\d+/);
+      if (match) maxNum = Math.max(maxNum, parseInt(match[0], 10));
+    });
+    let nextNum = maxNum ? maxNum + 1 : files.length + 1;
+    let nextOrder = files.reduce((m, item) => Math.max(m, item.order || 0), 0) + 1;
+    let id = 'f_' + Math.random().toString(36).slice(2);
+    let name = `${T[lang].page} ${nextNum}`;
+    let fData = await encText(key, '');
+    await db('files', 'readwrite', s => s.put({id, slug, name, order: nextOrder, ...fData}));
+    files.push({id, name, order: nextOrder});
+    switchToFile(id);
+  };
+  bar.appendChild(add);
+}
+
+function updateStats() {
+  let raw = $('docArea').innerText || '';
+  let wordsArray = raw.trim().split(/\s+/).filter(w => w.length > 0);
+  let words = wordsArray.length;
+  let chars = raw.replace(/\r?\n/g, '').length;
+  $('wordCount').textContent = `${T[lang].words}: ${words} | ${T[lang].chars}: ${chars}`;
+}
+
+$('docArea').oninput = () => {
+  if (readOnly) return;
+  updateStats();
+  clearTimeout(timer);
+  if ($('saveIndicator')) $('saveIndicator').textContent = T[lang].typing;
+  timer = setTimeout(saveCurrent, 800);
+};
+
+document.querySelectorAll('.ribbon button[data-cmd]').forEach(b => {
+  b.onclick = () => {
+    if (readOnly) return;
+    document.execCommand(b.dataset.cmd, false, null);
+    $('docArea').focus();
+  };
+});
+
+$('timeBtn').onclick = () => {
+  if (!premium) { openPaywall(); return; }
+  if (readOnly) return;
+  const timeStr = `[${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}] `;
+  $('docArea').focus();
+  
+  const sel = window.getSelection();
+  if (lastCursorRange) {
+    sel.removeAllRanges();
+    sel.addRange(lastCursorRange);
+  }
+  
+  if (sel && sel.rangeCount > 0 && $('docArea').contains(sel.anchorNode)) {
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const textNode = document.createTextNode(timeStr);
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    lastCursorRange = range.cloneRange();
+  } else {
+    $('docArea').appendChild(document.createTextNode(timeStr));
+  }
+  saveCurrent();
+  updateStats();
+};
+
+$('imgBtn').onclick = () => {
+  if (!premium) { openPaywall(); return; }
+  if (!readOnly) {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && $('docArea').contains(sel.anchorNode)) {
+      lastCursorRange = sel.getRangeAt(0).cloneRange();
+    }
+    $('imageInput').click();
+  }
+};
+
+function processAndInsertImage(file) {
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onerror = () => toast('Error reading image file');
+  reader.onload = ev => {
+    let img = new Image();
+    img.onerror = () => toast('Failed to load image format');
+    img.onload = () => {
+      const maxDim = 1200;
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      let compressedDataUrl = canvas.toDataURL('image/webp', 0.85);
+      if (!compressedDataUrl.startsWith('data:image/webp')) {
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      }
+
+      const doc = $('docArea');
+      const imgElem = document.createElement('img');
+      imgElem.src = compressedDataUrl;
+
+      doc.focus();
+      const sel = window.getSelection();
+      if (lastCursorRange) {
+        sel.removeAllRanges();
+        sel.addRange(lastCursorRange);
+      }
+
+      if (sel && sel.rangeCount > 0 && doc.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(imgElem);
+        const br = document.createElement('br');
+        imgElem.after(br);
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        lastCursorRange = range.cloneRange();
+      } else {
+        doc.appendChild(imgElem);
+        doc.appendChild(document.createElement('br'));
+      }
+      saveCurrent();
+      updateStats();
+      toast(T[lang].toastImgAdded);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+$('imageInput').onchange = e => {
+  let f = e.target.files[0];
+  if (f) processAndInsertImage(f);
+  $('imageInput').value = '';
+};
+
+$('tableBtn').onclick = () => {
+  if (!premium) { openPaywall(); return; }
+  if (readOnly) return;
+  const d = T[lang];
+  const tableHtml = `<table><tr><th>${d.th1}</th><th>${d.th2}</th></tr><tr><td>${d.td1}</td><td>${d.td2}</td></tr></table><p><br></p>`;
+  $('docArea').focus();
+  
+  const sel = window.getSelection();
+  if (lastCursorRange) {
+    sel.removeAllRanges();
+    sel.addRange(lastCursorRange);
+  }
+
+  if (sel && sel.rangeCount > 0 && $('docArea').contains(sel.anchorNode)) {
+    document.execCommand('insertHTML', false, tableHtml);
+  } else {
+    $('docArea').insertAdjacentHTML('beforeend', tableHtml);
+  }
+  saveCurrent();
+  updateStats();
+};
+
+function updateReadOnlyUI() {
+  $('docArea').contentEditable = !readOnly;
+  $('readonlyToggle').textContent = readOnly ? T[lang].edit : T[lang].readOnly;
+  $('readOnlyStatus').textContent = readOnly ? T[lang].readOnlyStatus : '';
+}
+$('readonlyToggle').onclick = () => { readOnly = !readOnly; updateReadOnlyUI(); };
+
+$('focusBtn').onclick = () => {
+  if (!premium) { openPaywall(); return; }
+  document.body.classList.toggle('focus-mode', true);
+};
+$('exitFocusBtn').onclick = () => document.body.classList.toggle('focus-mode', false);
+
+function parseSlides(html) {
+  let div = document.createElement('div');
+  div.innerHTML = html;
+
+  let nodes = [];
+  function extractBlocks(parent) {
+    Array.from(parent.childNodes).forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        let t = node.textContent.trim();
+        if (t) {
+          let p = document.createElement('p');
+          p.textContent = t;
+          nodes.push(p);
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName;
+        if (tag === 'BR') return;
+        if (['H1', 'H2', 'H3', 'TABLE', 'UL', 'OL', 'HR', 'IMG'].includes(tag) || (tag === 'P' && !node.querySelector('table, ul, ol, h1, h2, h3'))) {
+          nodes.push(node);
+        } else {
+          extractBlocks(node);
+        }
+      }
+    });
+  }
+  extractBlocks(div);
+
+  if (!nodes.length) return [`<p>${div.innerText.trim() || 'Empty Document'}</p>`];
+  let slides = [], current = [];
+
+  const isHeadingOrImg = el => {
+    const t = el.tagName;
+    return t === 'H1' || t === 'H2' || t === 'HR' || t === 'IMG' || el.querySelector('h1, h2, hr, img');
+  };
+
+  nodes.forEach(el => {
+    if (el.tagName === 'HR') {
+      if (current.length) { slides.push(current.join('')); current = []; }
+      return;
+    }
+    if (isHeadingOrImg(el) && current.length > 0) {
+      slides.push(current.join(''));
+      current = [];
+    }
+    current.push(el.outerHTML);
+    if (current.length >= 4) {
+      slides.push(current.join(''));
+      current = [];
+    }
+  });
+  if (current.length) slides.push(current.join(''));
+  return slides.length ? slides : [`<p>${div.innerText.trim() || 'Empty Document'}</p>`];
+}
+
+$('presentBtn').onclick = () => {
+  if (!premium) { openPaywall(); return; }
+
+  history.pushState({ modal: 'present' }, '');
+  let slides = parseSlides($('docArea').innerHTML);
+  let idx = 0;
+  let ov = document.createElement('div');
+  ov.className = 'pres-overlay';
+
+  ov.innerHTML = `
+    <div class="pres-header">
+      <div class="pres-counter" style="font-size:14px;color:#a5b4fc;font-weight:700">${T[lang].slide} 1 ${T[lang].of} ${slides.length}</div>
+      <div style="display:flex;gap:8px">
+        <button class="secondary" id="pFullscreen" style="padding:6px 12px;font-size:12px">${T[lang].fullscreen}</button>
+        <button class="secondary" id="pClose" style="padding:6px 14px;background:#ef4444;border:0;color:#fff;font-size:12px;font-weight:700">${T[lang].close}</button>
+      </div>
+    </div>
+    <div class="pres-progress-track"><div class="pres-progress-fill" id="pProgressBar"></div></div>
+    <div class="pres-card"><div class="pres-content" id="pSlideContent" dir="auto"></div></div>
+    <div class="pres-nav">
+      <button class="secondary" id="pPrev" style="padding:10px 24px;border-radius:12px">${T[lang].prev}</button>
+      <button class="secondary" id="pNext" style="padding:10px 24px;border-radius:12px;background:var(--acc);color:#fff">${T[lang].next}</button>
+    </div>`;
+
+  document.body.appendChild(ov);
+
+  function renderSlide(n) {
+    idx = Math.max(0, Math.min(n, slides.length - 1));
+    const content = ov.querySelector('#pSlideContent');
+    content.style.animation = 'none';
+    content.offsetHeight;
+    content.style.animation = 'slideFadeIn 0.3s ease forwards';
+    content.innerHTML = slides[idx];
+    ov.querySelector('.pres-counter').textContent = `${T[lang].slide} ${idx + 1} ${T[lang].of} ${slides.length}`;
+    ov.querySelector('#pProgressBar').style.width = `${((idx + 1) / slides.length) * 100}%`;
+    ov.querySelector('#pPrev').disabled = (idx === 0);
+    ov.querySelector('#pNext').disabled = (idx === slides.length - 1);
+  }
+  renderSlide(0);
+
+  let touchStartX = 0;
+  ov.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  ov.addEventListener('touchend', e => {
+    let diffX = e.changedTouches[0].screenX - touchStartX;
+    const isRTL = $('htmlRoot').dir === 'rtl';
+    if (diffX < -50) {
+      isRTL ? renderSlide(idx - 1) : renderSlide(idx + 1);
+    } else if (diffX > 50) {
+      isRTL ? renderSlide(idx + 1) : renderSlide(idx - 1);
+    }
+  }, { passive: true });
+
+  const onKey = e => {
+    if (e.key === 'Escape') {
+      history.back();
+      return;
+    }
+    const isRTL = $('htmlRoot').dir === 'rtl';
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      isRTL ? renderSlide(idx - 1) : renderSlide(idx + 1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      isRTL ? renderSlide(idx + 1) : renderSlide(idx - 1);
+    } else if (e.key === ' ') {
+      e.preventDefault();
+      renderSlide(idx + 1);
+    }
+  };
+  window.addEventListener('keydown', onKey);
+
+  activePresCleanup = () => {
+    window.removeEventListener('keydown', onKey);
+    activePresCleanup = null;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
+  ov.querySelector('#pNext').onclick = () => renderSlide(idx + 1);
+  ov.querySelector('#pPrev').onclick = () => renderSlide(idx - 1);
+  ov.querySelector('#pClose').onclick = () => history.back();
+  ov.querySelector('#pFullscreen').onclick = () => {
+    if (!document.fullscreenElement) {
+      ov.requestFullscreen().catch(() => toast('Fullscreen not supported'));
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+};
+
+// ייצוא גיבוי מוצפן
+$('backupBtn').onclick = async () => {
+  try {
+    let j = await db('journals', 'readonly', s => s.getAll());
+    let f = await db('files', 'readonly', s => s.getAll());
+    if (!j.length) { toast(T[lang].toastNoDataExport); return; }
+    
+    let bp = prompt(T[lang].promptBackup);
+    if (bp === null) return;
+    if (!bp || bp.length < 4) { toast(T[lang].toastShortPw); return; }
+    
+    let {key: bKey, saltHex} = await derive(bp);
+    let ed = await encText(bKey, JSON.stringify({journals: j, files: f}));
+    let payload = JSON.stringify({salt: saltHex, iv: ed.iv, ct: ed.ct, version: 1});
+    const fileName = `AuraLock-Backup-${new Date().toISOString().slice(0,10)}.json`;
+    let blob = new Blob([payload], {type: 'application/json'});
+    
+    let shared = false;
+    const file = new File([blob], fileName, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'AuraLock Backup' });
+        toast(T[lang].toastBackupSuccess);
+        shared = true;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+    if (!shared) {
+      let a = document.createElement('a');
+      const blobUrl = URL.createObjectURL(blob);
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+      toast(T[lang].toastBackupSuccess);
+    }
+  } catch (e) {
+    toast('Export failed');
+  }
+};
+
+// שחזור גיבוי בטרנזקציה אטומית
+$('restoreBackupBtn').onclick = () => $('importInput').click();
+$('importInput').onchange = async e => {
+  let file = e.target.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      let backupObj = JSON.parse(ev.target.result);
+      if (!backupObj.salt || !backupObj.iv || !backupObj.ct) throw new Error();
+      let bp = prompt(T[lang].promptRestore);
+      if (!bp) return;
+      let {key: bKey} = await derive(bp, backupObj.salt);
+      let data = JSON.parse(await decText(bKey, backupObj.iv, backupObj.ct));
+      
+      if (Array.isArray(data.journals) && Array.isArray(data.files)) {
+        await db('journals', 'readwrite', s => {
+          data.journals.forEach(j => { if (j && j.slug) s.put(j); });
+        });
+        await db('files', 'readwrite', s => {
+          data.files.forEach(f => { if (f && f.id) s.put(f); });
+        });
+        loadList($('mainSearchInput').value.trim().toLowerCase());
+        toast(T[lang].toastRestoreSuccess);
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      toast(T[lang].toastRestoreFail);
+    } finally {
+      $('importInput').value = '';
+    }
+  };
+  reader.readAsText(file);
+};
+
+// נעילת יומן וניקוי מוחלט מהזיכרון
+$('lockBtn').onclick = async () => {
+  clearTimeout(timer);
+  await saveCurrent();
+  key = null;
+  slug = null;
+  files = [];
+  activeFile = null;
+  readOnly = false;
+  hasDecryptionError = false;
+  lastCursorRange = null;
+  
+  $('docArea').innerHTML = '';
+  $('enterPw').value = '';
+  $('newPw').value = '';
+  $('newName').value = '';
+  document.title = 'AuraLock : Private Journal';
+  
+  $('app').classList.add('hidden');
+  $('gate').classList.remove('hidden');
+  showScr('screenSelect');
+  loadList($('mainSearchInput').value.trim().toLowerCase());
+  toast(T[lang].lockedToast);
+};
+</script>
+</body>
+</html>
